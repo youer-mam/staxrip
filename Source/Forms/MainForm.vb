@@ -2535,12 +2535,11 @@ Public Class MainForm
                 Dim sourceHeight = MediaInfo.GetVideo(p.LastOriginalSourceFile, "Height").ToInt
                 Dim matrix = If(sourceHeight = 0 OrElse sourceHeight > 576, "709", "470bg")
                 Dim format = If(p.SourceVideoBitDepth = 10, "YUV420P10", "YUV420P8")
-                p.Script.GetFilter("Source").Script += BR + "clip = clip.resize.Bicubic(matrix_s = '" +
-                    matrix + $"', format = vs.{format})"
+                p.Script.Filters.Add(New VideoFilter("Color", "Convert To " + $"{format}", "clip = core.resize.Bicubic(clip, matrix_s = '" +
+                        matrix + $"', format = vs.{format})"))
             ElseIf editAVS AndAlso Not sourceFilter.Script.ContainsAny("ConvertToYV12", "ConvertToYUV420") AndAlso
-                Not sourceFilter.Script.Contains("ConvertToYUV420") Then
-
-                p.Script.GetFilter("Source").Script += BR + "ConvertToYUV420()"
+                    Not sourceFilter.Script.Contains("ConvertToYUV420") Then
+                p.Script.Filters.Add(New VideoFilter("Color", "ConvertTo", "ConvertToYUV420()"))
             End If
         End If
 
