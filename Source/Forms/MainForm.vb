@@ -2531,16 +2531,34 @@ Public Class MainForm
         End If
 
         If p.SourceChromaSubsampling <> "4:2:0" AndAlso s.ConvertChromaSubsampling Then
+            Dim sourceHeight = MediaInfo.GetVideo(p.LastOriginalSourceFile, "Height").ToInt
+            Dim mediaType = MediaInfo.GetGeneral(p.LastOriginalSourceFile, "Format")
+            Dim compressionMode = MediaInfo.GetVideo(p.LastOriginalSourceFile, "Compression_Mode")
+            Dim scanType = MediaInfo.GetVideo(p.LastOriginalSourceFile, "ScanType")
+            If scanType = "" AndAlso mediaType = "AVI" AndAlso compressionMode = "Lossless" AndAlso
+                (sourceHeight = 480 OrElse sourceHeight = 576) Then
+                scanType = "Interlaced"
+            End If
+            Dim isInterlaced = (scanType = "MBAFF" OrElse scanType = "Interlaced")
+
             If editVS Then
-                Dim sourceHeight = MediaInfo.GetVideo(p.LastOriginalSourceFile, "Height").ToInt
                 Dim matrix = If(sourceHeight = 0 OrElse sourceHeight > 576, "709", "470bg")
                 Dim format = If(p.SourceVideoBitDepth = 10, "YUV420P10", "YUV420P8")
-                p.Script.GetFilter("Source").Script += BR + "clip = clip.resize.Bicubic(matrix_s = '" +
-                    matrix + $"', format = vs.{format})"
+                If isInterlaced Then
+                    p.Script.Filters.Add(New VideoFilter("Color", "Convert To " + $"{format}", "clip = core.resize.Bicubic(matrix_s = '" +
+                        matrix + $"', format = vs.{format})"))
+                Else
+                    p.Script.GetFilter("Source").Script += BR + "clip = clip.resize.Bicubic(matrix_s = '" +
+                        matrix + $"', format = vs.{format})"
+                End If
             ElseIf editAVS AndAlso Not sourceFilter.Script.ContainsAny("ConvertToYV12", "ConvertToYUV420") AndAlso
-                Not sourceFilter.Script.Contains("ConvertToYUV420") Then
+                    Not sourceFilter.Script.Contains("ConvertToYUV420") Then
+                If isInterlaced Then
+                    p.Script.Filters.Add(New VideoFilter("Color", "ConvertTo", "ConvertToYUV420()"))
+                Else
+                    p.Script.GetFilter("Source").Script += BR + "ConvertToYUV420()"
+                End If
 
-                p.Script.GetFilter("Source").Script += BR + "ConvertToYUV420()"
             End If
         End If
 
