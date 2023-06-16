@@ -2539,6 +2539,7 @@ Public Class MainForm
                     matrix + $"', format = vs.{format})"))
             ElseIf editAVS AndAlso Not sourceFilter.Script.ContainsAny("ConvertToYV12", "ConvertToYUV420") AndAlso
                 Not sourceFilter.Script.Contains("ConvertToYUV420") Then
+                                                                                
                 p.Script.Filters.Add(New VideoFilter("Color", "ConvertTo", "ConvertToYUV420()"))
             End If
         End If
