@@ -2531,16 +2531,16 @@ Public Class MainForm
         End If
 
         If p.SourceChromaSubsampling <> "4:2:0" AndAlso s.ConvertChromaSubsampling Then
-            If editVS Then
+            Dim targetFilter = If(p.Script.GetActiveDeinterlacer(), p.Script.GetFilter("Source"))
+
+            If editVS AndAlso Not (p.Script.Contains("Color", "vs.YUV420P10") OrElse p.Script.Contains("Color", "vs.YUV420P8")) Then
                 Dim sourceHeight = MediaInfo.GetVideo(p.LastOriginalSourceFile, "Height").ToInt
                 Dim matrix = If(sourceHeight = 0 OrElse sourceHeight > 576, "709", "470bg")
                 Dim format = If(p.SourceVideoBitDepth = 10, "YUV420P10", "YUV420P8")
-                p.Script.GetFilter("Source").Script += BR + "clip = clip.resize.Bicubic(matrix_s = '" +
+                targetFilter.Script += BR + "clip = clip.resize.Bicubic(matrix_s = '" +
                     matrix + $"', format = vs.{format})"
-            ElseIf editAVS AndAlso Not sourceFilter.Script.ContainsAny("ConvertToYV12", "ConvertToYUV420") AndAlso
-                Not sourceFilter.Script.Contains("ConvertToYUV420") Then
-
-                p.Script.GetFilter("Source").Script += BR + "ConvertToYUV420()"
+            ElseIf editAVS AndAlso Not (p.Script.Contains("Color", "ConvertToYUV420") OrElse p.Script.Contains("Color", "ConvertToYV12")) Then
+                targetFilter.Script += BR + "ConvertToYUV420()"
             End If
         End If
 
