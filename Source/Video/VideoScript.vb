@@ -707,6 +707,20 @@ clipname.set_output()
 
         Return DialogResult.Cancel
     End Function
+                        
+    Function GetActiveDeinterlacer() As VideoFilter
+        For Each f In Filters
+            If f.Active AndAlso f.Category = "Field" Then
+                If f.Path.StartsWith("Deinterlace | ") OrElse
+                f.Name.StartsWith("QTGMC") Then ' GetDefaults() doesn't prepend "Deinterlace | " before "QTGMC Medium"
+                    ' this is probably a bug but lots of exisiting project files are already like this so we need to check
+                    Return f
+                End If
+            End If
+        Next
+                        
+        Return Nothing
+    End Function
 End Class
 
 <Serializable()>
