@@ -4,11 +4,57 @@ v2.xx.0 (not published yet)
 
 - ...
 - Update tools
-    - vvencFFapp v1.8.0
 - Update AviSynth+ plugins
 - Update Dual plugins
 - Update VapourSynth plugins
 -->
+
+
+v2.22.0 (2023-07-06)
+====================
+
+- Add conversion speed information relative to video framerate for x264 and x265 reformatted progress output ([#781](/../../issues/781))
+- Fix stealing focus on job completion again ([#333](/../../issues/333))
+- QSVEncC: Add missing parameters ([#1016](/../../issues/1016))
+- Update tools
+    - FFmpeg v6.0 N-111327-g695789eacc-x64-gcc13.1.0
+    - Mp4Box v2.3-DEV-rev395-g98979a443-x64-msvc1936
+    - qaac v2.80
+    - x264 v0.164.3107+9-30c58f9-.Mod-by-Patman.-x64-gcc13.1.0
+    - x265 v3.5+104+15-ba4e7a2cb-.Mod-by-Patman.-x64-msvc1936
+
+
+v2.21.0 (2023-07-03)
+====================
+
+- AOMEnc: Fix "--matrix-coefficients" options ([#1023](/../../issues/1023))
+- NVEncC: Fix "--lossless" being visible for H264 only
+- QSVEncC: Add "--tile-col" and "--tile-row" parameters
+- QSVEncC: Add "--max-framesize" parameter
+- QSVEncC: Add "--hevc-gpb" parameter
+- QSVEncC: Set "--tile-row 2" as default parameter/value
+- QSVEncC: Fix some UI bugs
+- Fix wrong channel recognition and extraction for temp audio files ([#1027](/../../issues/1027))
+- Fix stealing focus on job completion ([#333](/../../issues/333))
+- Fix opening multiple VOB files in multiple instances instead of running just one
+- Replace app icon
+- Update tools
+    - AOMEnc v3.6.1-807-g7e0293d9c-x64-msvc1936
+    - chapterEditor v1.38
+    - MediaInfo v23.06
+    - MKVToolNix v77.0
+    - NVEncC v7.30
+    - QSVEncC v7.46
+    - rav1e v0.6.1-(p20230627-3-ge379128)-x64-gcc13.1.0
+    - SvtAv1EncApp v1.6.0-x64-msvc1936
+    - VCEEncC v8.16
+- Update AviSynth+ plugins
+    - CropResize 2023-06-02
+    - ExTools v10.2
+    - FFTW v3.3.10
+- Update Dual plugins
+    - SVPFlow1 v4.5.0.200 (Thanks to Nuihc88)
+    - SVPFlow2 v4.3.0.161 (Thanks to Nuihc88)
 
 
 v2.20.0 (2023-06-07)
