@@ -1,4 +1,5 @@
 ﻿
+Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text.RegularExpressions
 Imports System.Threading
@@ -14,12 +15,21 @@ Public Class ProcController
     Private ReadOnly CustomProgressInfoSeparator As String = ", "
     Private UseFirstExpression As Boolean = True
     Private FailCounter As Integer = 0
+    Private _ProjectScriptFrameRate As Double = -1.0
 
     Property Proc As Proc
     Property LogTextBox As New RichTextBoxEx
     Property ProgressBar As New LabelProgressBar
     Property ProcForm As ProcessingForm
     Property Button As New ButtonEx
+    ReadOnly Property ProjectScriptFrameRate As Double
+        Get
+            If _ProjectScriptFrameRate < 0 Then
+                _ProjectScriptFrameRate = If(Proc?.Project?.Script Is Nothing, 0.0, Proc.Project.Script.GetFramerate())
+            End If
+            Return _ProjectScriptFrameRate
+        End Get
+    End Property
 
     Shared Property Procs As New List(Of ProcController)
     Shared Property Aborted As Boolean
@@ -207,7 +217,7 @@ Public Class ProcController
                 LogTextBox.SelectionFormat(m.Index, m.Length, oh.MetadataFileBackColor, oh.MetadataFileForeColor, oh.MetadataFileFontStyles)
             Next
 
-            matches = Regex.Matches(LogTextBox.Text, "(""[A-Z]:\\[^\a\b\e\f\n\r\t\v""]+\.(avc|h264|h265|hevc|mkv|mp4)"")|((?<!"")[A-Z]:\\[\S\\]+\.(avc|h264|h265|hevc|mkv|mp4)(?!""))", RegexOptions.IgnoreCase)
+            matches = Regex.Matches(LogTextBox.Text, "(""[A-Z]:\\[^\a\b\e\f\n\r\t\v""]+\.(avc|h264|h265|hevc|mkv|mp4|vob)"")|((?<!"")[A-Z]:\\[\S\\]+\.(avc|h264|h265|hevc|mkv|mp4|vob)(?!""))", RegexOptions.IgnoreCase)
             For Each m As Match In matches
                 LogTextBox.SelectionFormat(m.Index, m.Length, oh.MediaFileBackColor, oh.MediaFileForeColor, oh.MediaFileFontStyles)
             Next
@@ -278,7 +288,16 @@ Public Class ProcController
                         match = Regex.Match(value, pattern, RegexOptions.IgnoreCase)
 
                         If match.Success Then
-                            value = $"[{match.Groups(1).Value,2}{match.Groups(2).Value}%] {match.Groups(3).Value.PadLeft(match.Groups(4).Value.Length)}/{match.Groups(4).Value} frames @ {match.Groups(5).Value}{match.Groups(6).Value} fps{CustomProgressInfoSeparator}{match.Groups(7).Value,4} {match.Groups(9).Value}{CustomProgressInfoSeparator}{match.Groups(12).Value}{match.Groups(13).Value} {match.Groups(14).Value} ({match.Groups(15).Value} {match.Groups(17).Value}){CustomProgressInfoSeparator}{match.Groups(10).Value} (-{match.Groups(11).Value})"
+                            Dim fps = 0.0
+                            Dim fpsParse = Double.TryParse(match.Groups(5).Value + match.Groups(6).Value, NumberStyles.Float, CultureInfo.InvariantCulture, fps)
+                            Dim speedString = ""
+
+                            If fpsParse AndAlso ProjectScriptFrameRate > 0 Then
+                                Dim speed = fps / ProjectScriptFrameRate
+                                speedString = $" ({speed.ToString("0.00", CultureInfo.InvariantCulture )}x)"
+                            End If
+
+                            value = $"[{match.Groups(1).Value,2}{match.Groups(2).Value}%] {match.Groups(3).Value.PadLeft(match.Groups(4).Value.Length)}/{match.Groups(4).Value} frames @ {match.Groups(5).Value}{match.Groups(6).Value} fps{speedString}{CustomProgressInfoSeparator}{match.Groups(7).Value,4} {match.Groups(9).Value}{CustomProgressInfoSeparator}{match.Groups(12).Value}{match.Groups(13).Value} {match.Groups(14).Value} ({match.Groups(15).Value} {match.Groups(17).Value}){CustomProgressInfoSeparator}{match.Groups(10).Value} (-{match.Groups(11).Value})"
                         Else
                             UseFirstExpression = Not UseFirstExpression
                             FailCounter += 1
@@ -289,7 +308,16 @@ Public Class ProcController
                         match = Regex.Match(value, pattern, RegexOptions.IgnoreCase)
 
                         If match.Success Then
-                            value = $"[{match.Groups(2).Value,2}.{match.Groups(3).Value}%] {match.Groups(5).Value.PadLeft(match.Groups(6).Value.Length)}/{match.Groups(6).Value} frames @ {match.Groups(8).Value}.{match.Groups(9).Value} fps{CustomProgressInfoSeparator}{match.Groups(11).Value,4} kb/s{CustomProgressInfoSeparator}{match.Groups(16).Value} {match.Groups(18).Value} ({match.Groups(20).Value}.{match.Groups(21).Value} {match.Groups(22).Value}){CustomProgressInfoSeparator}{match.Groups(13).Value} (-{match.Groups(14).Value})"
+                            Dim fps = 0.0
+                            Dim fpsParse = Double.TryParse($"{match.Groups(8).Value}.{match.Groups(9).Value}", NumberStyles.Float, CultureInfo.InvariantCulture, fps)
+                            Dim speedString = ""
+
+                            If fpsParse AndAlso ProjectScriptFrameRate > 0 Then
+                                Dim speed = fps / ProjectScriptFrameRate
+                                speedString = $" ({speed.ToString("0.00", CultureInfo.InvariantCulture )}x)"
+                            End If
+
+                            value = $"[{match.Groups(2).Value,2}.{match.Groups(3).Value}%] {match.Groups(5).Value.PadLeft(match.Groups(6).Value.Length)}/{match.Groups(6).Value} frames @ {match.Groups(8).Value}.{match.Groups(9).Value} fps{speedString}{CustomProgressInfoSeparator}{match.Groups(11).Value,4} kb/s{CustomProgressInfoSeparator}{match.Groups(16).Value} {match.Groups(18).Value} ({match.Groups(20).Value}.{match.Groups(21).Value} {match.Groups(22).Value}){CustomProgressInfoSeparator}{match.Groups(13).Value} (-{match.Groups(14).Value})"
                         Else
                             UseFirstExpression = Not UseFirstExpression
                             FailCounter += 1
@@ -302,7 +330,16 @@ Public Class ProcController
                         match = Regex.Match(value, pattern, RegexOptions.IgnoreCase)
 
                         If match.Success Then
-                            value = $"[{match.Groups(1).Value,2}{match.Groups(2).Value}%] {match.Groups(3).Value.PadLeft(match.Groups(4).Value.Length)}/{match.Groups(4).Value} frames @ {match.Groups(5).Value}{match.Groups(6).Value} fps{CustomProgressInfoSeparator}{match.Groups(7).Value,4} {match.Groups(9).Value}{CustomProgressInfoSeparator}{match.Groups(12).Value}{match.Groups(13).Value} {match.Groups(14).Value} ({match.Groups(15).Value} {match.Groups(17).Value}){CustomProgressInfoSeparator}{match.Groups(10).Value} (-{match.Groups(11).Value})"
+                            Dim fps = 0.0
+                            Dim fpsParse = Double.TryParse(match.Groups(5).Value + match.Groups(6).Value, NumberStyles.Float, CultureInfo.InvariantCulture, fps)
+                            Dim speedString = ""
+
+                            If fpsParse AndAlso ProjectScriptFrameRate > 0 Then
+                                Dim speed = fps / ProjectScriptFrameRate
+                                speedString = $" ({speed.ToString("0.00", CultureInfo.InvariantCulture )}x)"
+                            End If
+
+                            value = $"[{match.Groups(1).Value,2}{match.Groups(2).Value}%] {match.Groups(3).Value.PadLeft(match.Groups(4).Value.Length)}/{match.Groups(4).Value} frames @ {match.Groups(5).Value}{match.Groups(6).Value} fps{speedString}{CustomProgressInfoSeparator}{match.Groups(7).Value,4} {match.Groups(9).Value}{CustomProgressInfoSeparator}{match.Groups(12).Value}{match.Groups(13).Value} {match.Groups(14).Value} ({match.Groups(15).Value} {match.Groups(17).Value}){CustomProgressInfoSeparator}{match.Groups(10).Value} (-{match.Groups(11).Value})"
                         Else
                             UseFirstExpression = Not UseFirstExpression
                             FailCounter += 1
@@ -313,7 +350,16 @@ Public Class ProcController
                         match = Regex.Match(value, pattern, RegexOptions.IgnoreCase)
 
                         If match.Success Then
-                            value = $"[{match.Groups(2).Value,2}.{match.Groups(3).Value}%] {match.Groups(5).Value.PadLeft(match.Groups(7).Value.Length)}{match.Groups(6).Value}/{match.Groups(7).Value} frames @ {match.Groups(10).Value}.{match.Groups(11).Value} fps{CustomProgressInfoSeparator}{match.Groups(14).Value,4} {match.Groups(16).Value}{CustomProgressInfoSeparator}{match.Groups(19).Value} {match.Groups(21).Value} ({match.Groups(22).Value} {match.Groups(24).Value}){CustomProgressInfoSeparator}{match.Groups(17).Value} (-{match.Groups(18).Value})"
+                            Dim fps = 0.0
+                            Dim fpsParse = Double.TryParse($"{match.Groups(10).Value}.{match.Groups(11).Value}", NumberStyles.Float, CultureInfo.InvariantCulture, fps)
+                            Dim speedString = ""
+
+                            If fpsParse AndAlso ProjectScriptFrameRate > 0 Then
+                                Dim speed = fps / ProjectScriptFrameRate
+                                speedString = $" ({speed.ToString("0.00", CultureInfo.InvariantCulture )}x)"
+                            End If
+
+                            value = $"[{match.Groups(2).Value,2}.{match.Groups(3).Value}%] {match.Groups(5).Value.PadLeft(match.Groups(7).Value.Length)}{match.Groups(6).Value}/{match.Groups(7).Value} frames @ {match.Groups(10).Value}.{match.Groups(11).Value} fps{speedString}{CustomProgressInfoSeparator}{match.Groups(14).Value,4} {match.Groups(16).Value}{CustomProgressInfoSeparator}{match.Groups(19).Value} {match.Groups(21).Value} ({match.Groups(22).Value} {match.Groups(24).Value}){CustomProgressInfoSeparator}{match.Groups(17).Value} (-{match.Groups(18).Value})"
                         Else
                             UseFirstExpression = Not UseFirstExpression
                             FailCounter += 1
@@ -566,6 +612,8 @@ Public Class ProcController
     End Sub
 
     Sub Cleanup()
+        BlockActivation = True
+
         SyncLock Procs
             Procs.Remove(Me)
 
@@ -691,7 +739,7 @@ Public Class ProcController
         End SyncLock
 
         g.ProcForm.Invoke(Sub()
-                              If Not g.ProcForm.WindowState = FormWindowState.Minimized Then
+                              If Not g.ProcForm.WindowState = FormWindowState.Minimized OrElse Not BlockActivation Then
                                   g.ProcForm.Show()
                                   g.ProcForm.WindowState = FormWindowState.Normal
                                   g.ProcForm.Activate()
