@@ -431,6 +431,9 @@
     </Compile>
     <Compile Include="UI\ToolStripRendererEx.vb" />
     <Compile Include="UI\UI Help.vb" />
+    <None Include="Resources\SR_blue_3.ico" />
+    <None Include="SR_blue.ico" />
+    <Content Include="SR_blue_3.ico" />
     <EmbeddedResource Include="Video\AviSynthFilterProfileDefaults.txt" />
     <EmbeddedResource Include="Video\VapourSynthFilterProfileDefaults.txt" />
     <EmbeddedResource Include="UI\TaskDialogBaseForm.resx">
